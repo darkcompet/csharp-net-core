@@ -14,29 +14,43 @@ namespace Tool.Compet.Core {
 		/// Copy properties which be annotated with `JsonPropertyNameAttribute` from `srcObj` to `dstObj`.
 		/// Get properties: https://docs.microsoft.com/en-us/dotnet/api/system.type.getproperties
 		public static void CopyJsonAnnotatedProperties(object srcObj, object dstObj) {
-			var name2prop_src = new Dictionary<string, PropertyInfo>();
+			var name2prop_src = CollectPropertiesRecursively(srcObj.GetType());
+			var name2prop_dst = CollectPropertiesRecursively(dstObj.GetType());
 
-			// Find properties inside the source object
-			foreach (var propInfo_src in srcObj.GetType().GetProperties()) {
-				var jsonAttribute_src = propInfo_src.GetCustomAttribute<JsonPropertyNameAttribute>();
-				if (jsonAttribute_src != null) {
-					name2prop_src.Add(jsonAttribute_src.Name!, propInfo_src);
+			foreach (var item_dst in name2prop_dst) {
+				// Look up at this property
+				var targetPropName = item_dst.Key;
+
+				// Copy value at the property from srcObj -> dstObj
+				if (name2prop_src.TryGetValue(targetPropName, out var prop_src)) {
+					item_dst.Value.SetValue(dstObj, prop_src.GetValue(srcObj));
+					if (DkBuildConfig.DEBUG) { Tool.Compet.Log.DkLogs.Debug(typeof(DkReflections), $"Copied property {targetPropName}"); }
+				}
+			}
+		}
+
+		private static Dictionary<string, PropertyInfo> CollectPropertiesRecursively(Type type) {
+			var name2prop = new Dictionary<string, PropertyInfo>();
+
+			var props = type.GetProperties();
+			for (var index = props.Length - 1; index >= 0; --index) {
+				var prop = props[index];
+				var attr = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
+				if (attr != null) {
+					// Set (not add to avoid exception when duplicated key)
+					name2prop[attr.Name] = prop;
 				}
 			}
 
-			// For each src-prop, we find dst-prop which name matches with name of the src-prop.
-			// Then just assign value of src-prop to dst-prop.
-			var propInfos_dst = dstObj.GetType().GetProperties();
-			foreach (var propInfo_dst in propInfos_dst) {
-				var jsonAttribute_dst = propInfo_dst.GetCustomAttribute<JsonPropertyNameAttribute>();
-				if (jsonAttribute_dst != null) {
-					// Set value: src -> dst
-					if (name2prop_src.TryGetValue(jsonAttribute_dst.Name!, out var propInfo_src)) {
-						propInfo_dst.SetValue(dstObj, propInfo_src.GetValue(srcObj));
-						if (DkBuildConfig.DEBUG) { Tool.Compet.Log.DkLogs.Debug(typeof(DkReflections), $"Copied property {propInfo_src.Name}"); }
-					}
+			var baseType = type.BaseType;
+			if (baseType != null) {
+				// Set (not add to avoid exception when duplicated key)
+				foreach (var item in CollectPropertiesRecursively(baseType)) {
+					name2prop[item.Key] = item.Value;
 				}
 			}
+
+			return name2prop;
 		}
 	}
 }
