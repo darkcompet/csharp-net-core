@@ -24,7 +24,6 @@ namespace Tool.Compet.Core {
 				// Copy value at the property from srcObj -> dstObj
 				if (name2prop_src.TryGetValue(targetPropName, out var prop_src)) {
 					item_dst.Value.SetValue(dstObj, prop_src.GetValue(srcObj));
-					if (DkBuildConfig.DEBUG) { Tool.Compet.Log.DkLogs.Debug(typeof(DkReflections), $"Copied property {targetPropName}"); }
 				}
 			}
 		}
@@ -35,18 +34,18 @@ namespace Tool.Compet.Core {
 			var props = type.GetProperties();
 			for (var index = props.Length - 1; index >= 0; --index) {
 				var prop = props[index];
-				var attr = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
-				if (attr != null) {
+				var jsonAttribute = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
+				if (jsonAttribute != null) {
 					// Set (not add to avoid exception when duplicated key)
-					name2prop[attr.Name] = prop;
+					name2prop[jsonAttribute.Name] = prop;
 				}
 			}
 
 			var baseType = type.BaseType;
 			if (baseType != null) {
 				// Set (not add to avoid exception when duplicated key)
-				foreach (var item in CollectPropertiesRecursively(baseType)) {
-					name2prop[item.Key] = item.Value;
+				foreach (var name_prop in CollectPropertiesRecursively(baseType)) {
+					name2prop[name_prop.Key] = name_prop.Value;
 				}
 			}
 
