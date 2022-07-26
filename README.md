@@ -1,6 +1,6 @@
-# NET Core
+# Core for dotnet
 
-This provides core for NET.
+This provides Core for dotnet (.NET Core).
 
 - Features
 
