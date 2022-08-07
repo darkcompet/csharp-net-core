@@ -14,8 +14,8 @@ namespace Tool.Compet.Core {
 		/// Copy properties which be annotated with `JsonPropertyNameAttribute` from `srcObj` to `dstObj`.
 		/// Get properties: https://docs.microsoft.com/en-us/dotnet/api/system.type.getproperties
 		public static void CopyJsonAnnotatedProperties(object srcObj, object dstObj) {
-			var name2prop_src = CollectPropertiesRecursively(srcObj.GetType());
-			var name2prop_dst = CollectPropertiesRecursively(dstObj.GetType());
+			var name2prop_src = _CollectJsonAnnotatedPropertiesRecursively(srcObj.GetType());
+			var name2prop_dst = _CollectJsonAnnotatedPropertiesRecursively(dstObj.GetType());
 
 			foreach (var item_dst in name2prop_dst) {
 				// Look up at this property
@@ -28,7 +28,19 @@ namespace Tool.Compet.Core {
 			}
 		}
 
-		private static Dictionary<string, PropertyInfo> CollectPropertiesRecursively(Type type) {
+		public static void TrimJsonAnnotatedProperties(object obj) {
+			var name2prop = _CollectJsonAnnotatedPropertiesRecursively(obj.GetType());
+
+			foreach (var pair in name2prop) {
+				var prop = pair.Value;
+				var prop_value = prop.GetValue(obj);
+				if (prop_value != null && prop_value is string) {
+					prop.SetValue(obj, ((string)(prop_value)).Trim());
+				}
+			}
+		}
+
+		private static Dictionary<string, PropertyInfo> _CollectJsonAnnotatedPropertiesRecursively(Type type) {
 			var name2prop = new Dictionary<string, PropertyInfo>();
 
 			var props = type.GetProperties();
@@ -44,7 +56,7 @@ namespace Tool.Compet.Core {
 			var baseType = type.BaseType;
 			if (baseType != null) {
 				// Set (not add to avoid exception when duplicated key)
-				foreach (var name_prop in CollectPropertiesRecursively(baseType)) {
+				foreach (var name_prop in _CollectJsonAnnotatedPropertiesRecursively(baseType)) {
 					name2prop[name_prop.Key] = name_prop.Value;
 				}
 			}
