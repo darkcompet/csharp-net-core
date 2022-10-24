@@ -31,17 +31,17 @@ namespace Tool.Compet.Core {
 		public static void TrimJsonAnnotatedProperties(object obj) {
 			var name2prop = _CollectJsonAnnotatedPropertiesRecursively(obj.GetType());
 
-			foreach (var pair in name2prop) {
-				var prop = pair.Value;
-				var prop_value = prop.GetValue(obj);
-				if (prop_value != null && prop_value is string) {
-					prop.SetValue(obj, ((string)(prop_value)).Trim());
+			foreach (var kvPair in name2prop) {
+				var prop = kvPair.Value;
+				var propValue = prop.GetValue(obj);
+				if (propValue is string) {
+					prop.SetValue(obj, ((string)(propValue)).Trim());
 				}
 			}
 		}
 
 		private static Dictionary<string, PropertyInfo> _CollectJsonAnnotatedPropertiesRecursively(Type type) {
-			var name2prop = new Dictionary<string, PropertyInfo>();
+			var result_name2prop = new Dictionary<string, PropertyInfo>();
 
 			var props = type.GetProperties();
 			for (var index = props.Length - 1; index >= 0; --index) {
@@ -49,19 +49,19 @@ namespace Tool.Compet.Core {
 				var jsonAttribute = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
 				if (jsonAttribute != null) {
 					// Set (not add to avoid exception when duplicated key)
-					name2prop[jsonAttribute.Name] = prop;
+					result_name2prop[jsonAttribute.Name] = prop;
 				}
 			}
 
 			var baseType = type.BaseType;
 			if (baseType != null) {
 				// Set (not add to avoid exception when duplicated key)
-				foreach (var name_prop in _CollectJsonAnnotatedPropertiesRecursively(baseType)) {
-					name2prop[name_prop.Key] = name_prop.Value;
+				foreach (var name2prop in _CollectJsonAnnotatedPropertiesRecursively(baseType)) {
+					result_name2prop[name2prop.Key] = name2prop.Value;
 				}
 			}
 
-			return name2prop;
+			return result_name2prop;
 		}
 	}
 }
