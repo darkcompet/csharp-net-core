@@ -48,14 +48,14 @@ namespace Tool.Compet.Core {
 				var prop = props[index];
 				var jsonAttribute = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
 				if (jsonAttribute != null) {
-					// Set (not add to avoid exception when duplicated key)
+					// Use Set (do not use Add to avoid exception when duplicated key)
 					result_name2prop[jsonAttribute.Name] = prop;
 				}
 			}
 
 			var baseType = type.BaseType;
 			if (baseType != null) {
-				// Set (not add to avoid exception when duplicated key)
+				// Use Set (do not use Add to avoid exception when duplicated key)
 				foreach (var name2prop in _CollectJsonAnnotatedPropertiesRecursively(baseType)) {
 					result_name2prop[name2prop.Key] = name2prop.Value;
 				}
