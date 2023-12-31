@@ -1,53 +1,53 @@
-namespace Tool.Compet.Core {
-	using System.Threading;
+namespace Tool.Compet.Core;
 
-	public class DkAtomicBool {
-		/// True: != 0, False: == 0
-		private long rawValue;
+using System.Threading;
 
-		public bool value => Interlocked.Read(ref rawValue) != 0;
+public class DkAtomicBool {
+	/// True: != 0, False: == 0
+	private long rawValue;
 
-		public bool Set(bool value) {
-			if (value) {
-				return Interlocked.Or(ref rawValue, 1) != 0;
-			}
-			return Interlocked.And(ref rawValue, 0) == 0;
+	public bool value => Interlocked.Read(ref rawValue) != 0;
+
+	public bool Set(bool value) {
+		if (value) {
+			return Interlocked.Or(ref rawValue, 1) != 0;
 		}
+		return Interlocked.And(ref rawValue, 0) == 0;
+	}
+}
+
+public class DkAtomicInt {
+	private long rawValue;
+
+	public int value => (int)Interlocked.Read(ref rawValue);
+
+	public int Increment() {
+		return (int)Interlocked.Increment(ref rawValue);
 	}
 
-	public class DkAtomicInt {
-		private long rawValue;
-
-		public int value => (int)Interlocked.Read(ref rawValue);
-
-		public int Increment() {
-			return (int)Interlocked.Increment(ref rawValue);
-		}
-
-		public int Decrement() {
-			return (int)Interlocked.Decrement(ref rawValue);
-		}
-
-		public int Add(int more) {
-			return (int)Interlocked.Add(ref rawValue, more);
-		}
+	public int Decrement() {
+		return (int)Interlocked.Decrement(ref rawValue);
 	}
 
-	public class DkAtomicLong {
-		private long rawValue;
+	public int Add(int more) {
+		return (int)Interlocked.Add(ref rawValue, more);
+	}
+}
 
-		public long value => Interlocked.Read(ref rawValue);
+public class DkAtomicLong {
+	private long rawValue;
 
-		public long Increment() {
-			return Interlocked.Increment(ref rawValue);
-		}
+	public long value => Interlocked.Read(ref rawValue);
 
-		public long Decrement() {
-			return Interlocked.Decrement(ref rawValue);
-		}
+	public long Increment() {
+		return Interlocked.Increment(ref rawValue);
+	}
 
-		public long Add(long more) {
-			return Interlocked.Add(ref rawValue, more);
-		}
+	public long Decrement() {
+		return Interlocked.Decrement(ref rawValue);
+	}
+
+	public long Add(long more) {
+		return Interlocked.Add(ref rawValue, more);
 	}
 }
