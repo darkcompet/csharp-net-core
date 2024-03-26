@@ -35,8 +35,8 @@ public class DkReflections {
 		foreach (var kvPair in name2prop) {
 			var prop = kvPair.Value;
 			var propValue = prop.GetValue(obj);
-			if (propValue is string) {
-				prop.SetValue(obj, ((string)(propValue)).Trim());
+			if (propValue is string value) {
+				prop.SetValue(obj, value.Trim());
 			}
 		}
 	}
@@ -47,10 +47,10 @@ public class DkReflections {
 		var props = type.GetProperties();
 		for (var index = props.Length - 1; index >= 0; --index) {
 			var prop = props[index];
-			var jsonAttribute = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
-			if (jsonAttribute != null) {
+			var attribute = prop.GetCustomAttribute<JsonPropertyNameAttribute>();
+			if (attribute != null) {
 				// Use Set (do not use Add to avoid exception when duplicated key)
-				result_name2prop[jsonAttribute.Name] = prop;
+				result_name2prop[attribute.Name] = prop;
 			}
 		}
 
